@@ -75,6 +75,10 @@ Tehát várhatóan nagyjából 1590-335=1255 rekorddal (627 metódussal) tudunk 
 
   **Explanation**: kiszedi a metódus neveket (a 2 method_changes fileokra) és azt, hogy ez a korábbi vagy a későbbi. Ez alapján ellenőrizhető, hogy tényleg összefüggőek-e a rekordok.
 
+  "select signature, before_change, file_change_id, start_line from method_change where file_change_id in (select file_change.file_change_id as id from file_change join method_change on file_change.file_change_id=method_change.file_change_id group by file_change.file_change_id having count(*)=2) order by file_change_id" > test4_v2.txt
+
+  **Explanation**: ugyanaz, mint az előző, csak tartalmazza a kezdő sorokat.
+
 ### Egy CVE-re jutó fixek száma
 
 Ha a fixes, commits, file_change táblákat összekapcsoljuk INNER JOIN-nal,
@@ -122,6 +126,33 @@ a kiértékelés kezdetén megvizsgálni ezt.
 
   **Result**: 585 - ennyi használható CVE fixünk van, ahol egy CVE-hez több fix is tartozik
 
-  TODO: az utolsó két queryt felül kell vizsgálni, mert feltételezhető,
-  hogy a fáradtság befolyásolta az eredményeket egy-egy kisebb elírás formájában
-  
+## Conclusion
+
+Van elég tesztadat ahhoz, hogy a CVEFixes v1.0.8 alapján teszteljük
+az alkalmazás működésését (nagyságrendileg 500 használható CVE fix).
+
+A fájlok kinyerése:
+
+- kiválasztjuk azokat a CVE fixeket, amelyekhez legalább 2
+fix tartozik (különböző fájlok)
+- rászűrünk arra, hogy melyik fixhez tartozik
+pontosan egy file_change
+- rászűrünk arra, hogy melyik file_changekhez tartozik
+pontosan 2 method_change, egy before, és egy after
+- rászűrünk arra, melyeknél változott
+ugyanaz a metódus
+  - megnézzük a before change start_line-ját
+  - megnézzük a diff_parsed-ban, hogy hány deleted és added volt előtte
+(elvileg nem mindegy a sorrend, a deleted a régiben volt, az added az újban)
+  - ezt a különbséget hozzáadjuk, és megnézzük, hogy ugyanazt a sort
+tartalmazza-e az after change start_line-ja
+- kiszedjük a két rekordból a "code" értékeket, és berakjuk
+egy-egy fájlba (kellenek az importok is, hogyan??? - biztosan kellenek? szerintem nem kell fordíthatónak lennie... - a pattern a lényeg)
+  - ezt teszteljük le működés közben, hogy hogy kezeli az importokat
+  - úgyis ott látszódik majd rendesen, és válik érthetővé
+- viszont nem jó, ha a teljes metódust kiszedjük, csak egy része kell
+  - TODO: először nézzük meg a teljes metódussal, hogy viselkedik
+  - ha rosszul, akkor vannak alternatív módok
+    - pl. R-CPAT miner futtatása az adott repokra, adott commitok figyelembe vételével
+    - vagy azt a részhalmazt vesszük figyelembe, amely a diffben jelen van (változott)
+(talán első körben is ezt kéne nézni!!!)
