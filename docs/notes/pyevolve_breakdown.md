@@ -44,6 +44,6 @@ It makes rules out of them, and puts them into to rules directory.
 
 **"-p","patterns"** => "Path for code patterns"
 
-Project and type repos: what are those???
+Project and type repos: first one is the project repo path that we want to transform
 
 A másik kettő adja magát tbh.
