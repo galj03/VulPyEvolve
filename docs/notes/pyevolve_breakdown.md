@@ -46,4 +46,7 @@ It makes rules out of them, and puts them into to rules directory.
 
 Project and type repos: first one is the project repo path that we want to transform
 
-A másik kettő adja magát tbh.
+Files: a txt which contains the names of all files
+which should be refactored. File collection could be automated.
+
+Patterns: patterns or rules???
