@@ -8,8 +8,10 @@ from pathlib import Path
 # TODO: defaults
 DATABASE_PATH = 'Data'
 PATTERNS_PATH = 'TODO'
+RULES_PATH = 'TODO'
 PROJECT_REPO = 'TODO'
 TYPE_REPO = 'TODO'
+FILES_PATH = 'TODO'
 # LOGGING_LEVEL = logging.WARNING
 
 config_read = False
@@ -35,23 +37,25 @@ def read_config() -> None:
 
     Sets global constants with values found in the ini file.
     """
-    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, TYPE_REPO, config_read
+    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, TYPE_REPO, FILES_PATH, RULES_PATH, config_read
 
     config = ConfigParser()
-    if config.read(['VulPyEvolve.ini',
+    if config.read(['../VulPyEvolve.ini',
                     Path.home() / 'src' / 'config' / 'VulPyEvolve.ini',
                     Path.home() / 'VulPyEvolve.ini']):
         # try and update settings for each of the values, use
         DATABASE_PATH = config.get('Rules', 'database_path', fallback=DATABASE_PATH)
         PATTERNS_PATH = config.get('Rules', 'patterns_path', fallback=PATTERNS_PATH)
-        PROJECT_REPO = config.getint('Project', 'project_repository', fallback=PROJECT_REPO)
-        TYPE_REPO = config.getint('Project', 'type_repository', fallback=TYPE_REPO)
+        RULES_PATH = config.get('Rules', 'rules_path', fallback=RULES_PATH)
+        PROJECT_REPO = config.get('Project', 'project_repository', fallback=PROJECT_REPO)
+        TYPE_REPO = config.get('Project', 'type_repository', fallback=TYPE_REPO)
+        FILES_PATH = config.get('Project', 'files_path', fallback=FILES_PATH)
         # TODO: is logging needed?
-        # LOGGING_LEVEL = log_level_map.get(config.get('CVEfixes', 'logging_level', fallback='WARNING'), logging.WARNING)
+        # LOGGING_LEVEL = log_level_map.get(config.get('CVEfixes', 'logging_level', fallback='WARNING'),logging.WARNING)
         config_read = True
     else:
         # logger.warning('Cannot find CVEfixes config file in the working or $HOME directory, see INSTALL.md')
-        print('Cannot find CVEfixes config file in the working or $HOME directory')
+        print('Cannot find VulPyEvolve config file in the working or $HOME directory')
         sys.exit()
 
 
