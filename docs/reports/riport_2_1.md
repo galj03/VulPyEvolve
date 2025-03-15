@@ -1,5 +1,9 @@
 # 2024/25/2 - 1. riport, Gál József
 
+## Repo link
+
+<https://github.com/galj03/VulPyEvolve>
+
 ## Haladás
 
 - PyEvolve buildelése sikeres
