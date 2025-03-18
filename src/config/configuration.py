@@ -12,6 +12,7 @@ RULES_PATH = 'TODO'
 PROJECT_REPO = 'TODO'
 TYPE_REPO = 'TODO'
 FILES_PATH = 'TODO'
+EXTENSION = 'TODO'
 # LOGGING_LEVEL = logging.WARNING
 
 config_read = False
@@ -37,7 +38,7 @@ def read_config() -> None:
 
     Sets global constants with values found in the ini file.
     """
-    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, TYPE_REPO, FILES_PATH, RULES_PATH, config_read
+    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, TYPE_REPO, FILES_PATH, RULES_PATH, EXTENSION, config_read
 
     config = ConfigParser()
     if config.read(['../VulPyEvolve.ini',
@@ -50,6 +51,7 @@ def read_config() -> None:
         PROJECT_REPO = config.get('Project', 'project_repository', fallback=PROJECT_REPO)
         TYPE_REPO = config.get('Project', 'type_repository', fallback=TYPE_REPO)
         FILES_PATH = config.get('Project', 'files_path', fallback=FILES_PATH)
+        EXTENSION = config.get('Project', 'extension', fallback=EXTENSION)
         # TODO: is logging needed?
         # LOGGING_LEVEL = log_level_map.get(config.get('CVEfixes', 'logging_level', fallback='WARNING'),logging.WARNING)
         config_read = True

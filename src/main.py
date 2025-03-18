@@ -9,7 +9,9 @@ if __name__ == '__main__':
     if utils.is_directory_empty(cf.PATTERNS_PATH):
         infer_cve.infer_cve()
 
-    # TODO: if all is good, run_pyevolve_transform on the given repo
+    # if all is good:
+    utils.collect_file_names_to_text_file(cf.PROJECT_REPO, cf.FILES_PATH, cf.EXTENSION)
+    # TODO: run_pyevolve_transform on the given repo
     print("Db path: ", cf.DATABASE_PATH)
     print("res: ", pyevolve_facade.run_pyevolve())
     # print("res: ", pyevolve_facade.run_pyevolve_transform(cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.PATTERNS_PATH))
