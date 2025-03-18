@@ -13,3 +13,11 @@ def collect_file_names_to_text_file(base_directory: str, text_file: str, extensi
     with open(text_file, "w") as text_file:
         for path in Path(base_directory).rglob(f"*{extension}"):
             text_file.write(path.name)
+
+
+def match_extension_to_language(language: str) -> str:
+    match language:
+        case "Python":
+            return ".py"
+        case _:
+            return ".py"

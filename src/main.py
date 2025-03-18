@@ -10,7 +10,8 @@ if __name__ == '__main__':
         infer_cve.infer_cve()
 
     # if all is good:
-    utils.collect_file_names_to_text_file(cf.PROJECT_REPO, cf.FILES_PATH, cf.EXTENSION)
+    extension = utils.match_extension_to_language(cf.LANGUAGE)
+    utils.collect_file_names_to_text_file(cf.PROJECT_REPO, cf.FILES_PATH, extension)
     # TODO: run_pyevolve_transform on the given repo
     print("Db path: ", cf.DATABASE_PATH)
     print("res: ", pyevolve_facade.run_pyevolve())
