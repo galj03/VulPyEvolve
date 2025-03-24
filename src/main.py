@@ -6,7 +6,8 @@ from src.utils import utils
 # TODO: consider making it a cli app (possible extension point?)
 
 if __name__ == '__main__':
-    if utils.is_directory_empty(cf.PATTERNS_PATH):
+    # TODO: force infer with a bool param
+    if True or utils.is_directory_empty(cf.PATTERNS_PATH):
         infer_cve.infer_cve()
 
     # if all is good:
@@ -17,3 +18,4 @@ if __name__ == '__main__':
     print("res: ", pyevolve_facade.run_pyevolve())
     # print("res: ", pyevolve_facade.run_pyevolve_transform(cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.PATTERNS_PATH))
     # TODO: patterns or rules for last param?
+    # ans: elvileg rule!!!

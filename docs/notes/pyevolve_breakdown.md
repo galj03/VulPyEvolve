@@ -44,9 +44,11 @@ It makes rules out of them, and puts them into to rules directory.
 
 **"-p","patterns"** => "Path for code patterns"
 
-Project and type repos: first one is the project repo path that we want to transform
+Project and type repos: first one is the project repo path that we want to transform.
+
+Types: some random stuff created by a Python file. I don't understand why is it relevant.
 
 Files: a txt which contains the names of all files
 which should be refactored. File collection could be automated.
 
-Patterns: patterns or rules???
+Patterns: patterns or rules??? - elvileg rules

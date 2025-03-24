@@ -124,6 +124,17 @@ a kiértékelés kezdetén megvizsgálni ezt.
 
   select sum(fix_count) from (select cve_id, count(file_change_id) as fix_count from fixes join commits on fixes.hash=commits.hash and fixes.repo_url=commits.repo_url join file_change on commits.hash=file_change.hash where file_change_id in (select id from (select file_change.file_change_id as id, count(*) as change_count from file_change join method_change on file_change.file_change_id=method_change.file_change_id group by file_change.file_change_id) where change_count=2) group by cve_id having count(file_change_id)>1)
 
+  v_2: select sum(fix_count) from
+    (select cve_id, count(file_change_id) as fix_count
+    from fixes join commits on fixes.hash=commits.hash and fixes.repo_url=commits.repo_url
+    join file_change on commits.hash=file_change.hash
+    where file_change_id in
+    (select id from (select file_change.file_change_id as id, count(*) as change_count
+    from file_change join method_change on file_change.file_change_id=method_change.file_change_id
+    where programming_language=?
+    group by file_change.file_change_id) where change_count=2)
+    group by cve_id having count(file_change_id)>1)
+
   **Result**: 585 - ennyi használható CVE fixünk van, ahol egy CVE-hez több fix is tartozik
 
 ## Conclusion

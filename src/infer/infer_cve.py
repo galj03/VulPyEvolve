@@ -16,9 +16,10 @@ def infer_cve():
     try:
         database.extract_vulnerability_fixes(cf.DATABASE_PATH, cf.LANGUAGE, cf.PATTERNS_PATH)
     except sqlite3.DatabaseError as e:
-        print(f"{cf.DATABASE_PATH} is not a valid database file. Error: {e}")
+        print(f"A database error occurred in {cf.DATABASE_PATH}. Error: {e}")
         exit(1)
     except sqlite3.Error as e:
         print(f"Unexpected error with db '{cf.DATABASE_PATH}'.\nCheck if db really is a CVEFixes database.\nError: {e}")
+
     # 3. run run_pyevolve_infer
     # pyevolve_facade.run_pyevolve_infer(cf.PATTERNS_PATH, cf.RULES_PATH)
