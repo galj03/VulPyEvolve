@@ -13,15 +13,17 @@ from file_change join commits on file_change.hash=commits.hash
 where cve_id=?
 '''
 
+# TODO: diff?
 GET_METHOD_INFO_FROM_FILE_CHANGES_FOR_GIVEN_CVE = '''
-select signature, name, before_change, file_change_id, start_line
-from method_change
-where file_change_id in
+select method_change.name, before_change, method_change.file_change_id, code, new_path, signature
+from method_change join file_change
+on method_change.file_change_id=file_change.file_change_id
+where method_change.file_change_id in
     (select file_change.file_change_id as id
     from file_change
     join method_change on file_change.file_change_id=method_change.file_change_id
     join commits on file_change.hash=commits.hash join fixes on commits.hash=fixes.hash
     where cve_id=?
     group by file_change.file_change_id having count(*)=2)
-order by file_change_id
+order by method_change.file_change_id
 '''
