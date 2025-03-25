@@ -74,7 +74,8 @@ class MethodChange:
 
 
 def save_file_from_db_objects(patterns_path, left, right, file_path):
-    if left.is_before_change == right.is_before_change:
+    if left.is_before_change == right.is_before_change \
+            or left.name != right.name:
         return
     if not left.is_before_change:
         temp = left.copy()
@@ -84,8 +85,20 @@ def save_file_from_db_objects(patterns_path, left, right, file_path):
     file_name = file_path.split("\\")[-1]
 
     # TODO: szures, hogy csak a valtozo kodresz legyen benne
+    a = 'testing this is working \n testing this is working 1 \n'
+    b = 'testing this is working \n testing this is working 1 \n testing this is working 2'
+
+    splitA = set(a.split("\n"))
+    splitB = set(b.split("\n"))
+
+    diff = splitB.difference(splitA)
+    diff = ", ".join(diff)  # ' testing this is working 2, more things if there were...'
+    # this diff method should do the job
+    # TODO: modifications needed to get diff range (if we have lines 1,2,3 - 1 and 3 differ,
+    #  then return the whole range: 1,2,3)
     # import resz elmeletileg nem kell, mivel kicsereli a valtozokat, konyvtarakat a comby
     # legalabbis a talalt peldak ezt mutatjak
+    # TODO: pass differing lines only (maybe indices as params?)
     write_code_to_file(patterns_path, file_path, file_name, "l_", left)
     write_code_to_file(patterns_path, file_path, file_name, "r_", right)
 
