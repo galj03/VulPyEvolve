@@ -44,7 +44,7 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
 
         print(f"\n{cve}")
 
-        # TODO: kettesevel groupolni oket
+        # kettesevel groupolni oket
         # if nem true-false par, kidob
         # if nem ugyanaz a method, kidob
         # ezt hogy kene nezni? - fejlec, vagy csak nev? (ha fejlec mas, akkor mashol is van change,
@@ -83,6 +83,9 @@ def save_file_from_db_objects(patterns_path, left, right, file_path):
     file_path = file_path.replace("/", "\\")
     file_name = file_path.split("\\")[-1]
 
+    # TODO: szures, hogy csak a valtozo kodresz legyen benne
+    # import resz elmeletileg nem kell, mivel kicsereli a valtozokat, konyvtarakat a comby
+    # legalabbis a talalt peldak ezt mutatjak
     write_code_to_file(patterns_path, file_path, file_name, "l_", left)
     write_code_to_file(patterns_path, file_path, file_name, "r_", right)
 
