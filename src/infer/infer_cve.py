@@ -22,4 +22,5 @@ def infer_cve():
         print(f"Unexpected error with db '{cf.DATABASE_PATH}'.\nCheck if db really is a CVEFixes database.\nError: {e}")
 
     # 3. run run_pyevolve_infer
-    # pyevolve_facade.run_pyevolve_infer(cf.PATTERNS_PATH, cf.RULES_PATH)
+    res = pyevolve_facade.run_pyevolve_infer(cf.PATTERNS_PATH, cf.RULES_PATH)
+    print(res)

@@ -15,9 +15,10 @@ where cve_id=?
 
 # TODO: diff?
 GET_METHOD_INFO_FROM_FILE_CHANGES_FOR_GIVEN_CVE = '''
-select method_change.name, before_change, method_change.file_change_id, code, new_path, signature
+select method_change.name, before_change, method_change.file_change_id, code, new_path, signature, repo_url
 from method_change join file_change
 on method_change.file_change_id=file_change.file_change_id
+join commits on file_change.hash=commits.hash
 where method_change.file_change_id in
     (select file_change.file_change_id as id
     from file_change
