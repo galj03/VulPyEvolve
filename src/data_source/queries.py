@@ -13,7 +13,6 @@ from file_change join commits on file_change.hash=commits.hash
 where cve_id=?
 '''
 
-# TODO: diff?
 GET_METHOD_INFO_FROM_FILE_CHANGES_FOR_GIVEN_CVE = '''
 select method_change.name, before_change, method_change.file_change_id, code, new_path, signature, repo_url
 from method_change join file_change
