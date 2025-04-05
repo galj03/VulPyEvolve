@@ -2,7 +2,6 @@ import os
 import sqlite3
 from pathlib import Path
 
-from src.data_source.ast_parser import find_differences
 from src.data_source.queries import *
 
 
@@ -116,13 +115,6 @@ def save_file_from_db_objects(patterns_path, left, right, file_path):
 
     # TODO: if has syntax error, then throw it away
     # TODO: file path: "{patterns_path}/{file_name}-{cve}.py"
-
-    # TODO: remove these
-    # AI prompt:
-    # You are a senior Python developer. How to extract the differences between two code snippets using ast? Please, write a python code which handles the extraction, and explain it.
-    # And how can I turn the differences into actual code? I need both versions of it
-    differences = find_differences(a.strip(), b.strip())
-    differences.source_ast.sexp()
     # print(differences.edit_script())
     print("-----------------")
     print(diff_a)
