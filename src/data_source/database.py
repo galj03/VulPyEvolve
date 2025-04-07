@@ -1,3 +1,4 @@
+import ast
 import os
 import sqlite3
 from pathlib import Path
@@ -23,6 +24,9 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
         where file_change_id in
         ({GET_FILE_CHANGE_ID_WITH_TWO_METHOD_CHANGES})
         group by cve_id having count(fixes.hash)>1'''
+    # this is not enough, because we filter by two method changes
+    # maybe move that somewhere???
+    # statement = f'''select distinct cve_id from fixes'''
 
     cves = []
     cursor.execute(statement, (language,))
@@ -34,6 +38,7 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
     print(len(cves))
 
     repos = []
+    count = 0
     for cve in cves:
         # query = GET_FILE_CHANGE_ID_FROM_CVE_ID
         # cursor.execute(query, (cve,))
@@ -61,10 +66,15 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
             if i % 2 == 1:
                 right = MethodChange(row[0], row[1], row[2], row[3])
                 try:
-                    save_file_from_db_objects(patterns_path, left, right, row[4])
+                    save_file_from_db_objects(patterns_path, left, right, row[4], cve)
                 except Exception as e:
                     print(e)
             i += 1
+
+        # TODO: remove this after initial testing phase
+        count += 1
+        if count >= 10:
+            break
 
         # TODO: reconsider this, may not be relevant!!!
         # with open(patterns_path + 'repos.txt', 'w') as f:
@@ -83,7 +93,7 @@ class MethodChange:
         self.code = code
 
 
-def save_file_from_db_objects(patterns_path, left, right, file_path):
+def save_file_from_db_objects(patterns_path, left, right, file_path, cve):
     if left.is_before_change == right.is_before_change \
             or left.name != right.name:
         return
@@ -124,10 +134,17 @@ def save_file_from_db_objects(patterns_path, left, right, file_path):
     print(diff_b)
     print("-----------------")
 
+    try:
+        diff_a_ast = ast.parse(diff_a)
+        diff_b_ast = ast.parse(diff_b)
+    except Exception:
+        print("Error while parsing AST. File will not be saved.")
+        return
+
     # write_code_to_file(patterns_path, file_path, file_name, "old_l_", left.code)
     # write_code_to_file(patterns_path, file_path, file_name, "old_r_", right.code)
-    # write_code_to_file(patterns_path, file_path, file_name, "l_", diff_a)
-    # write_code_to_file(patterns_path, file_path, file_name, "r_", diff_b)
+    write_code_to_file(patterns_path, file_name, "l_", cve, diff_a)
+    write_code_to_file(patterns_path, file_name, "r_", cve, diff_b)
     print(left.name)
 
 
@@ -233,8 +250,10 @@ def include_full_rows(a, diff_a, first_diff_index, last_diff_index):
     return diff_a, first_diff_index, last_diff_index
 
 
-def write_code_to_file(patterns_path, file_path, file_name, file_name_prefix, content):
-    new_file_path = file_path.replace(file_name, file_name_prefix + file_name)
+def write_code_to_file(patterns_path, file_name, file_name_prefix, cve, content):
+    # new_file_path = file_path.replace(file_name, file_name_prefix + file_name)
+    new_file_path = file_name_prefix + file_name
+    new_file_path = new_file_path.replace(".py", f"-{cve}.py")  # TODO: technical debt: generalize extension
     full_path = os.path.join(patterns_path, new_file_path)
     if not os.path.exists(full_path):
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
