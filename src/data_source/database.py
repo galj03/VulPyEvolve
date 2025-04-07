@@ -11,40 +11,26 @@ def is_database_available(database_path) -> bool:
     return db_file.is_file() and db_file.suffix == ".db"
 
 
-# TODO: optimize queries if possible
+# TODO: technical debt: optimize queries if possible
 def extract_vulnerability_fixes(database_path, language, patterns_path):
     connection = sqlite3.connect(database_path)
     cursor = connection.cursor()
 
-    # gets all cve fixes with at least two different commits
-    # TODO: remove having statement
     statement = f'''select cve_id, count(file_change_id) as fix_count
         from fixes join commits on fixes.hash=commits.hash and fixes.repo_url=commits.repo_url
         join file_change on commits.hash=file_change.hash
         where file_change_id in
         ({GET_FILE_CHANGE_ID_WITH_TWO_METHOD_CHANGES})
-        group by cve_id having count(fixes.hash)>1'''
-    # this is not enough, because we filter by two method changes
-    # maybe move that somewhere???
-    # statement = f'''select distinct cve_id from fixes'''
+        group by cve_id'''
 
     cves = []
     cursor.execute(statement, (language,))
     output = cursor.fetchall()
     for row in output:
-        # print(row[0])
         cves.append(row[0])
-        # row['cve_id']
     print(len(cves))
 
-    repos = []
-    count = 0
     for cve in cves:
-        # query = GET_FILE_CHANGE_ID_FROM_CVE_ID
-        # cursor.execute(query, (cve,))
-        # file_changes = []
-        # for row in cursor.fetchall():
-        #     file_changes.append(row[0])
         query = GET_METHOD_INFO_FROM_FILE_CHANGES_FOR_GIVEN_CVE
         cursor.execute(query, (cve,))
 
@@ -60,7 +46,6 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
         i = 0
         for row in cursor.fetchall():
             print(row)
-            repos.append(row[6])
             if i % 2 == 0:
                 left = MethodChange(row[0], row[1], row[2], row[3])
             if i % 2 == 1:
@@ -70,16 +55,6 @@ def extract_vulnerability_fixes(database_path, language, patterns_path):
                 except Exception as e:
                     print(e)
             i += 1
-
-        # TODO: remove this after initial testing phase
-        count += 1
-        if count >= 10:
-            break
-
-        # TODO: reconsider this, may not be relevant!!!
-        # with open(patterns_path + 'repos.txt', 'w') as f:
-        #     for repo in repos:
-        #         f.write(repo + '\n')  # TODO: extract repos for each cve to enable cross-validation
 
     connection.commit()
     connection.close()
@@ -104,8 +79,8 @@ def save_file_from_db_objects(patterns_path, left, right, file_path, cve):
     file_path = file_path.replace("/", "\\")  # TODO: technical debt - use multiplatform solution
     file_name = file_path.split("\\")[-1]
 
-    a = left.code  # 'testing this is working \n testing this is working 1 \n'
-    b = right.code  # 'testing this is working \n testing this is working 1 \n testing this is working 2'
+    a = left.code
+    b = right.code
 
     first_diff_index = next((i for i in range(min(len(a), len(b))) if a[i] != b[i]), None)
     last_diff_index = next((i for i in range(max(len(a), len(b))) if a[-i] != b[-i]), None)
@@ -125,18 +100,15 @@ def save_file_from_db_objects(patterns_path, left, right, file_path, cve):
 
     # TODO: if has syntax error, then throw it away
     # TODO: file path: "{patterns_path}/{file_name}-{cve}.py"
-    # print(differences.edit_script())
     print("-----------------")
     print(diff_a)
-    # print(differences.source_text)
     print("-----------------")
-    # print(differences.target_text)
     print(diff_b)
     print("-----------------")
 
     try:
-        diff_a_ast = ast.parse(diff_a)
-        diff_b_ast = ast.parse(diff_b)
+        _ = ast.parse(diff_a)
+        _ = ast.parse(diff_b)
     except Exception:
         print("Error while parsing AST. File will not be saved.")
         return
@@ -226,7 +198,6 @@ def expand_to_include_full_function(a, diff_a, first_diff_index, last_diff_index
 def trim_unnecessary_indentations(diff_a):
     if not (diff_a[0] == ' ' or diff_a[0] == '\t'):
         return diff_a.strip()
-    # expand to include the whole line - another function will handle this
     i = 0
     for j in range(len(diff_a)):
         if not (diff_a[j] == ' ' or diff_a[j] == '\t'):
