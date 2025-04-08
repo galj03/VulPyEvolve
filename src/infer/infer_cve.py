@@ -5,7 +5,12 @@ from src.config import configuration as cf
 from src.facades import pyevolve_facade
 
 
-def infer_cve():
+def extract_and_infer_cve(root_dir):
+    extract_fixes()
+    infer_cve(root_dir)
+
+
+def extract_fixes():
     # 1. check for database
     if not database.is_database_available(cf.DATABASE_PATH):
         print('Database does not exist')
@@ -21,6 +26,8 @@ def infer_cve():
     except sqlite3.Error as e:
         print(f"Unexpected error with db '{cf.DATABASE_PATH}'.\nCheck if db really is a CVEFixes database.\nError: {e}")
 
+
+def infer_cve(root_dir):
     # 3. run run_pyevolve_infer
-    res = pyevolve_facade.run_pyevolve_infer(cf.PATTERNS_PATH, cf.RULES_PATH)
+    res = pyevolve_facade.run_pyevolve_infer(root_dir, cf.PATTERNS_PATH, cf.RULES_PATH)
     print(res)
