@@ -21,11 +21,12 @@ import json
 import os
 
 # configure following variables
-TYPE_INFER_PYTYPE_FILES = ''
-TYPE_INFER_PYTYPE_SAVE = ''
-TYPE_INFER_PROJECT_PATH = ''
-TYPE_INFER_PROJECT_NAME = 'pythonInfer/PatternTest/'
+TYPE_INFER_PYTYPE_FILES = ''  # idk, some temp dir maybe (probably yes, it is)
+TYPE_INFER_PYTYPE_SAVE = ''  # TYPE_REPO from config
+TYPE_INFER_PROJECT_PATH = ''  # PROJECT_REPO from config
+TYPE_INFER_PROJECT_NAME = 'pythonInfer/PatternTest/'  # inside PROJECT_REPO
 
+# it was 3.7 originally
 py_version_s = '3.7'
 py_version = (3, 7)
 
@@ -70,6 +71,7 @@ def generate_pytype_folder(project_path, file_path, pytype_storage, type_repo):
     subprocess.run(['pytype', '--pythonpath=' + project_path, '--python-version=' + py_version_s, '--no-report-errors',
                     '--keep-going', '--protocols', '--output=' + pytype_storage, file_path], shell=False, env=env,
                    cwd=os.path.dirname(os.path.realpath(__file__)))
+    # TODO: test if cwd will be correct if not run as subprocess
 
 
 def _get_node_key(node):
@@ -93,17 +95,17 @@ def _get_node_key(node):
 
 
 def main1():
-    if (len(sys.argv) > 1):
+    if len(sys.argv) > 1:
         pytype_storage = sys.argv[1]
     else:
         pytype_storage = TYPE_INFER_PYTYPE_FILES
 
-    if (len(sys.argv) > 2):
+    if len(sys.argv) > 2:
         type_repo = sys.argv[2]
     else:
         type_repo = TYPE_INFER_PYTYPE_SAVE
 
-    if (len(sys.argv) > 2):
+    if len(sys.argv) > 2:
         project_path = sys.argv[3]
     else:
         project_path = TYPE_INFER_PROJECT_PATH

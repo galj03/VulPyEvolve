@@ -55,6 +55,11 @@ def main():
         os.path.join(cf.PROJECT_REPO, "pythonInfer\\evaluation_set"), cf.FILES_PATH, extension)
 
     # 8. run pyevolve.transform
+    # TODO: finish docker first
+    # print("res: ",
+    # pyevolve_facade.run_pyevolve_transform(
+    # root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
+
     # 9. evaluate results (how??? - bleu score?)
     # 10. save results into a file
     # 11. start over from step 2 (empty rules and patterns dirs)
