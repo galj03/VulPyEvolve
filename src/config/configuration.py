@@ -7,6 +7,7 @@ DATABASE_PATH = 'Data'
 PATTERNS_PATH = 'TODO'
 RULES_PATH = 'TODO'
 PROJECT_REPO = 'TODO'
+PROJECT_NAME = 'TODO'
 TYPE_REPO = 'TODO'
 FILES_PATH = 'TODO'
 LANGUAGE = 'TODO'
@@ -20,7 +21,8 @@ def read_config() -> None:
 
     Sets global constants with values found in the ini file.
     """
-    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, TYPE_REPO, FILES_PATH, RULES_PATH, LANGUAGE, config_read
+    global DATABASE_PATH, PATTERNS_PATH, PROJECT_REPO, PROJECT_NAME, TYPE_REPO, FILES_PATH, RULES_PATH,\
+        LANGUAGE, config_read
 
     config = ConfigParser()
     if config.read(['../VulPyEvolve.ini',
@@ -31,6 +33,7 @@ def read_config() -> None:
         PATTERNS_PATH = config.get('Rules', 'patterns_path', fallback=PATTERNS_PATH)
         RULES_PATH = config.get('Rules', 'rules_path', fallback=RULES_PATH)
         PROJECT_REPO = config.get('Project', 'project_repository', fallback=PROJECT_REPO)
+        PROJECT_NAME = config.get('Project', 'project_name', fallback=PROJECT_NAME)
         TYPE_REPO = config.get('Project', 'type_repository', fallback=TYPE_REPO)
         FILES_PATH = config.get('Project', 'files_path', fallback=FILES_PATH)
         LANGUAGE = config.get('Project', 'language', fallback=LANGUAGE)

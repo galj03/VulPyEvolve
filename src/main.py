@@ -1,7 +1,9 @@
+import os
 from pathlib import Path
 
 from src.facades import pyevolve_facade
 from src.config import configuration as cf
+from src.infer import type_infer as ti
 from src.infer import infer_cve
 from src.utils import utils
 
@@ -22,6 +24,11 @@ if __name__ == '__main__':
     extension = utils.match_extension_to_language(cf.LANGUAGE)
     utils.collect_file_names_to_text_file(cf.PROJECT_REPO, cf.FILES_PATH, extension)
     # TODO: run type_infer.py
+    ti.TYPE_INFER_PYTYPE_FILES = os.path.join(cf.TYPE_REPO, "pytype_files")
+    ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+    ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
+    ti.TYPE_INFER_PROJECT_NAME = cf.PROJECT_NAME
+    ti.main1()
     # TODO: run_pyevolve_transform on the given repo
     print("Db path: ", cf.DATABASE_PATH)
     print("res: ", pyevolve_facade.run_pyevolve(root_dir))

@@ -27,13 +27,13 @@ TYPE_INFER_PROJECT_PATH = ''  # PROJECT_REPO from config
 TYPE_INFER_PROJECT_NAME = 'pythonInfer/PatternTest/'  # inside PROJECT_REPO
 
 # it was 3.7 originally
-py_version_s = '3.7'
-py_version = (3, 7)
+py_version_s = '3.12'
+py_version = (3, 12)
 
 
 def annotate(source, file_name, pytype_storage, type_repo):
     source = textwrap.dedent(source.lstrip('\n'))
-    ast_factory = lambda unused_options: ast
+    ast_factory = ast  # lambda unused_options: ast
     # pytype_options = config.Options.create(python_version=(3,7),nofail=True,protocols=True,no_report_errors=True,keep_going=True,
     #               imports_map=pytype_out_path+'/imports/'+file_name)
     try:
@@ -118,7 +118,7 @@ def main1():
     if not os.path.exists(type_repo):
         os.makedirs(type_repo)
     project_name = TYPE_INFER_PROJECT_NAME
-    project_path = TYPE_INFER_PROJECT_PATH + project_name
+    project_path = os.path.join(TYPE_INFER_PROJECT_PATH, project_name)
     # project_path = gitrepo_loc + "/" + project_name
     # repo_clone(url,gitrepo_loc,project_name)
     # iterate_commits(project_path,pytype_storage,type_repo)
@@ -132,7 +132,8 @@ def process_before_side(project_path, project_name, pytype_storage, type_repo):
             if file.endswith('.py'):
                 file_path = os.path.join(root, file)
 
-                save_name = type_repo + project_name + '/' + file[:-3].replace('/', '_') + '.json'
+                save_name = (type_repo + os.path.sep + project_name + os.path.sep
+                             + file[:-3].replace(os.path.sep, '_') + '.json')
                 dir = os.path.dirname(save_name)
                 if not os.path.exists(dir):
                     os.makedirs(dir)
@@ -140,7 +141,7 @@ def process_before_side(project_path, project_name, pytype_storage, type_repo):
                     # if (path.exists(save_name)):
                     #   print("already analyzed")
                     #   continue
-                    first_rev = generate_type_info(file_path, project_path, file.replace('/', '_'), save_name,
+                    first_rev = generate_type_info(file_path, project_path, file.replace(os.path.sep, '_'), save_name,
                                                    pytype_storage, type_repo)
                 except UnicodeEncodeError as e:
                     print(e)
@@ -164,7 +165,8 @@ def generate_type_info(file_path, project_path, file_name, save_name, pytype_sto
 
     print(file_name[:-3] + 'imports')
 
-    im_path = os.path.relpath("/".join(file_path.split('/')[:-1]), project_path).replace("/", ".")
+    # im_path = os.path.relpath("/".join(file_path.split('/')[:-1]), project_path).replace("/", ".")
+    im_path = os.path.relpath(os.path.sep.join(file_path.split(os.path.sep)[:-1]), project_path).replace(os.path.sep, ".")
 
     if (im_path != "."):
         module = annotate(src, im_path + "." + file_name[:-3] + '.imports', pytype_storage, type_repo)
@@ -185,8 +187,8 @@ def repo_clone(url, location, repo_name):
     if (os.path.exists(location + repo_name)):
         return
     os.mkdir(location + repo_name)
-    print("Repo is downloading to :" + location + "/" + repo_name)
-    Repo.clone_from(url=url, to_path=location + "/" + repo_name)
+    print("Repo is downloading to :" + location + os.path.sep + repo_name)
+    Repo.clone_from(url=url, to_path=location + os.path.sep + repo_name)
 
 
 # json_object = json.dumps(dic_str)
