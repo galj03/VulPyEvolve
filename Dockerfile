@@ -43,6 +43,7 @@ USER appuser
 
 # Copy the source code into the container.
 COPY . /app
+COPY VulPyEvolve.ini VulPyEvolve.ini
 
 # TODO: copy eval resources as well
 COPY /_infer_data/eval _infer_data/eval
@@ -50,8 +51,11 @@ COPY /_infer_data/eval _infer_data/eval
 # Expose the port that the application listens on.
 EXPOSE 8000
 
+# TODO: ModuleNotFoundError: No module named 'git'
+
 # Run the application.
 # TODO: test if this works
 WORKDIR /app
+ENV PYTHONPATH="${PYTHONPATH}:/app/src"
 # CMD python3 src/main.py
 CMD python3 src/eval/tool_eval.py
