@@ -17,7 +17,7 @@ from src.utils import utils
 
 def main():
     # 0. set config values
-    root_dir = Path.cwd().parent.parent
+    root_dir = Path.cwd().parent
     eval_root_dir = os.path.join(root_dir.parent, "_infer_data", "eval")
     patterns_dir = os.path.join(eval_root_dir, "patterns")
     temp_dir = os.path.join(eval_root_dir, "temp")
@@ -30,7 +30,7 @@ def main():
     cf.FILES_PATH = os.path.join(eval_root_dir, "files.txt")
 
     create_directory_if_not_exists(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
-    create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set")) # TODO: remove later?
+    create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))  # TODO: remove later?
     create_directory_if_not_exists(patterns_dir)
     create_directory_if_not_exists(temp_dir)
     create_directory_if_not_exists(compare_dir)
@@ -40,7 +40,7 @@ def main():
     # extract_fixes()
 
     is_not_first_run = False
-    while True:
+    while not is_not_first_run:
         if is_not_first_run:
             cf.PATTERNS_PATH = temp_dir
 
@@ -91,7 +91,7 @@ def main():
 
         score = nltk.translate.bleu_score.corpus_bleu(original_files_tokens, transformed_files_tokens)
         # 10. save results into a file
-        with open(f"{eval_root_dir}{os.path.sep}pre_transform_scores.txt", "a") as f:
+        with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
             f.write(f"{score}\n")
 
         # 11. start over from step 2 (empty rules and patterns dirs)

@@ -16,7 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+# WORKDIR /app
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -42,12 +42,16 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 USER appuser
 
 # Copy the source code into the container.
-COPY . .
+COPY . /app
 
 # TODO: copy eval resources as well
+COPY /_infer_data/eval _infer_data/eval
 
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
-CMD python3 src/main.py
+# TODO: test if this works
+WORKDIR /app
+# CMD python3 src/main.py
+CMD python3 src/eval/tool_eval.py

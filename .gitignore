@@ -1,3 +1,6 @@
+# Evaluation folder (needed by docker image)
+_infer_data/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
