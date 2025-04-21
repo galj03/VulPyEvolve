@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 from src.facades import pyevolve_facade
@@ -12,6 +13,8 @@ IS_FORCE_INFER = True
 # TODO: consider making it a cli app (possible extension point?)
 if __name__ == '__main__':
     root_dir = Path.cwd().parent
+    if len(sys.argv) > 1:
+        root_dir = sys.argv[1]
     # TODO: remove after testing
     # findings: needs to execute a bash command, needs to be run on linux
     # print("res: ",
