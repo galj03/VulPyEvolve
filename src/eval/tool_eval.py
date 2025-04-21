@@ -6,9 +6,11 @@ import tokenize
 from glob import glob
 from pathlib import Path
 
+import chardet
 import nltk
 
 from src.config import configuration as cf
+from src.facades import pyevolve_facade
 from src.infer import type_infer as ti
 from src.infer.infer_cve import extract_fixes, infer_cve
 from sklearn.model_selection import train_test_split
@@ -70,22 +72,21 @@ def main():
 
         # 6. type_infer for project_repo
         # TODO: uncomment
-        # ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
-        # ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
-        # ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
-        # ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
-        # ti.main1()
+        ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+        ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+        ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
+        ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
+        ti.main1()
 
         # 7. collect files into files.txt
         extension = utils.match_extension_to_language(cf.LANGUAGE)
         utils.collect_file_names_to_text_file(
-            os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), cf.FILES_PATH, extension)
+            cf.PROJECT_REPO, cf.FILES_PATH, extension)
 
         # 8. run pyevolve.transform
         # TODO: finish docker first
-        # print("res: ",
-        # pyevolve_facade.run_pyevolve_transform(
-        # root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
+        print("res: ", pyevolve_facade.run_pyevolve_transform(
+            root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
 
         # 9. evaluate results (bleu score)
         transformed_files_tokens = collect_tokens_from_files_in_dir(
@@ -93,6 +94,7 @@ def main():
         original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, files_test, "r_")
 
         score = nltk.translate.bleu_score.corpus_bleu(original_files_tokens, transformed_files_tokens)
+        print(f"Bleu: {score}")
         # 10. save results into a file
         with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
             f.write(f"{score}\n")
@@ -175,7 +177,9 @@ def collect_tokens_from_files_in_dir(directory, files, prefix):
         r_file_name = prefix + file_name
         file_path = os.path.join(directory, r_file_name)
         file_str: str
-        with open(file_path, 'r') as f:
+        with open(file_path, 'rb') as f:
+            encoding_dict = chardet.detect(f.read())
+        with open(file_path, 'r', encoding=encoding_dict["encoding"]) as f:
             file_str = f.read()
         tokens = tokenize.generate_tokens(io.StringIO(file_str).readline)
         token_list.append([token.string for token in tokens])

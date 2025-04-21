@@ -4,3 +4,5 @@ pytype~=2024.10.11
 GitPython~=3.1.44
 Jinja2~=3.1.6
 numpy~=2.2.4
+chardet~=5.2.0
+requests~=2.32.3
