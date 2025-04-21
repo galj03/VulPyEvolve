@@ -17,8 +17,8 @@ from src.utils import utils
 
 def main():
     # 0. set config values
-    root_dir = Path.cwd().parent
-    eval_root_dir = os.path.join(root_dir.parent, "_infer_data", "eval")
+    root_dir = Path.cwd().parent.parent
+    eval_root_dir = os.path.join(root_dir, "_infer_data", "eval")
     patterns_dir = os.path.join(eval_root_dir, "patterns")
     temp_dir = os.path.join(eval_root_dir, "temp")
     compare_dir = os.path.join(eval_root_dir, "compare")
