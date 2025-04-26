@@ -45,7 +45,8 @@ def main():
     # extract_fixes()
 
     is_not_first_run = False
-    while not is_not_first_run:
+    # while not is_not_first_run:
+    while True:
         if is_not_first_run:
             cf.PATTERNS_PATH = temp_dir
 
@@ -84,19 +85,35 @@ def main():
             cf.PROJECT_REPO, cf.FILES_PATH, extension)
 
         # 8. run pyevolve.transform
-        # TODO: finish docker first
+        # TODO: run on the whole method instead of the change!!!
         print("res: ", pyevolve_facade.run_pyevolve_transform(
             root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
 
-        # 9. evaluate results (bleu score)
-        transformed_files_tokens = collect_tokens_from_files_in_dir(
-            os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
-        original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, files_test, "r_")
+        # TODO: remove this
+        # print_dir_files(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), extension)
+        # print_dir_files(cf.RULES_PATH, extension)
 
+        # 8,5. filter out invalid files
+        filtered_count, filtered = filter_files(
+            os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
+        print(f"{filtered_count} files were filtered out due to a tokenizing error.")
+
+        # 9. evaluate results (bleu score)
+        # transformed_files_tokens = collect_tokens_from_files_in_dir(
+        #     os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
+        # original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, files_test, "r_")
+        transformed_files_tokens = collect_tokens_from_files_in_dir(
+            os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), filtered, "l_")
+        original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, filtered, "r_")
+
+        print(original_files_tokens)
+        print(transformed_files_tokens)  # why are these empty???
         score = nltk.translate.bleu_score.corpus_bleu(original_files_tokens, transformed_files_tokens)
         print(f"Bleu: {score}")
+
         # 10. save results into a file
-        with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
+        # with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
+        with open(f"{eval_root_dir}{os.path.sep}docker_transform_scores.txt", "a") as f:
             f.write(f"{score}\n")
 
         # 11. start over from step 2 (empty rules and patterns dirs)
@@ -115,6 +132,36 @@ def main():
 def create_directory_if_not_exists(directory_path):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path, exist_ok=True)
+
+
+def print_dir_files(base_dir, extension):
+    for path in glob(f'{base_dir}/**/*{extension}', recursive=True):
+        with open(path, 'rb') as f:
+            encoding_dict = chardet.detect(f.read())
+        with open(path, 'r', encoding=encoding_dict["encoding"]) as f:
+            print(f"{path}: ", f.read())
+
+
+def filter_files(directory, files, prefix):
+    filtered_count = 0
+    new_files = []
+    for file_name in files:
+        r_file_name = prefix + file_name
+        file_path = os.path.join(directory, r_file_name)
+        file_str: str
+        try:
+            with open(file_path, 'rb') as f:
+                encoding_dict = chardet.detect(f.read())
+            with open(file_path, 'r', encoding=encoding_dict["encoding"]) as f:
+                file_str = f.read()
+            tokens = tokenize.generate_tokens(io.StringIO(file_str).readline)
+            _ = [token.string for token in tokens]
+            new_files.append(file_name)
+        except Exception:
+            os.remove(file_path)
+            filtered_count += 1
+            # print(f"Filtered: {file_str}\n")
+    return filtered_count, new_files
 
 
 def get_files_from_dir(dir_path):
