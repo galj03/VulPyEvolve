@@ -5,12 +5,12 @@ from src.config import configuration as cf
 from src.facades import pyevolve_facade
 
 
-def extract_and_infer_cve(root_dir):
-    extract_fixes()
+def extract_and_infer_cve(root_dir, methods_path=None):
+    extract_fixes(methods_path)
     infer_cve(root_dir)
 
 
-def extract_fixes():
+def extract_fixes(methods_path=None):
     # 1. check for database
     if not database.is_database_available(cf.DATABASE_PATH):
         print('Database does not exist')
@@ -19,7 +19,7 @@ def extract_fixes():
 
     # 2. extract data from db
     try:
-        database.extract_vulnerability_fixes(cf.DATABASE_PATH, cf.LANGUAGE, cf.PATTERNS_PATH)
+        database.extract_vulnerability_fixes(cf.DATABASE_PATH, cf.LANGUAGE, cf.PATTERNS_PATH, methods_path)
     except sqlite3.DatabaseError as e:
         print(f"A database error occurred in {cf.DATABASE_PATH}. Error: {e}")
         exit(1)

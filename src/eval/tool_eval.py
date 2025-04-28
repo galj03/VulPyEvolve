@@ -47,9 +47,8 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
 
     # TODO: relabel these at the end
     # 1. collect all fixes from db to a temp dir
-    # TODO: change
     if is_extract_from_db:
-        extract_fixes()
+        extract_fixes(temp_method_dir)
 
     # 2. type infer on all data, so it will only be required once
     ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
@@ -74,7 +73,10 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
 
         # 3. split the files (l and r sides should always stay connected!!!) 10-90 using scikit-learn
         files = get_files_from_dir(temp_dir)
-        print(len(files))
+        if not is_transform_change_only:
+            files = files.intersection(get_files_from_dir(temp_method_dir))
+
+        # print(len(files))
         files_train, files_test = train_test_split(list(files), test_size=0.1)
 
         # 4. copy the 10 part to a dummy project_repo
@@ -85,7 +87,6 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
             copy_l_files_to_dir(files_test, temp_method_dir,
                                 os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
             copy_r_files_to_dir(files_test, temp_method_dir, compare_dir)
-            pass
 
         # 5. copy the 90 to patterns_path
         copy_files_to_dir(files_train, temp_dir, patterns_dir)
@@ -100,10 +101,9 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
             cf.PROJECT_REPO, cf.FILES_PATH, extension)
 
         # 9. run pyevolve.transform
-        # print("res: ", pyevolve_facade.run_pyevolve_transform(
-        #     root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
-        pyevolve_facade.run_pyevolve_transform(
+        res = pyevolve_facade.run_pyevolve_transform(
             root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH)
+        # print("res: ", res)
 
         # TODO: remove this
         # print_dir_files(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), extension)
@@ -112,14 +112,11 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
         # 10. filter out invalid files
         filtered_count, filtered = filter_files(
             os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
-        print(f"{filtered_count} files were filtered out due to a tokenizing error.")
+        print(f"Filered files count: {filtered_count}")
         with open(f"{eval_root_dir}{os.path.sep}filtered_files_count.txt", "a") as f:
             f.write(f"{filtered_count}\n")
 
         # 11. evaluate results (bleu score)
-        # transformed_files_tokens = collect_tokens_from_files_in_dir(
-        #     os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
-        # original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, files_test, "r_")
         transformed_files_tokens = collect_tokens_from_files_in_dir(
             os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), filtered, "l_")
         original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, filtered, "r_")
@@ -131,7 +128,7 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
 
         # 12. save results into a file
         # with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
-        with open(f"{eval_root_dir}{os.path.sep}docker_transform_scores.txt", "a") as f:
+        with open(f"{eval_root_dir}{os.path.sep}pre_transform_method_scores.txt", "a") as f:
             f.write(f"{score}\n")
 
         # 13. start over from step 3 (empty rules and patterns dirs)
@@ -249,5 +246,6 @@ def collect_tokens_from_files_in_dir(directory, files, prefix):
 
 
 if __name__ == '__main__':
-    # main(True, True) - this is the default
-    main(True, False)
+    # main(True, True) - this is the default - executes 1 run
+    # main(False, False, 200)
+    main(False, False, 200)

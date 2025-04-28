@@ -1,16 +1,16 @@
+import os
 import sys
 from configparser import ConfigParser
 from pathlib import Path
 
-# TODO: defaults
 DATABASE_PATH = 'Data'
-PATTERNS_PATH = 'TODO'
-RULES_PATH = 'TODO'
-PROJECT_REPO = 'TODO'
-PROJECT_NAME = 'TODO'
-TYPE_REPO = 'TODO'
-FILES_PATH = 'TODO'
-LANGUAGE = 'TODO'
+PATTERNS_PATH = os.path.join(Path.home(), 'patterns')
+RULES_PATH = os.path.join(Path.home(), 'rules')
+PROJECT_REPO = os.path.join(Path.home(), 'project_repo')
+PROJECT_NAME = os.path.join('pythonInfer', 'projectName')
+TYPE_REPO = os.path.join(Path.home(), 'type_repo')
+FILES_PATH = os.path.join(Path.home(), 'files.txt')
+LANGUAGE = 'Python'
 
 config_read = False
 
