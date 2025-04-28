@@ -57,14 +57,12 @@ RUN apt-get update
 RUN apt-get install -y git
 RUN apt-get install -y default-jdk
 # RUN apt-get install -y openjdk-11-jre-headless
-# TODO: install java (version??)
 
 RUN apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
 # Run the application.
-# TODO: test if this works
 WORKDIR /app
 ENV PYTHONPATH="${PYTHONPATH}:/app/src"
-# CMD python3 src/main.py
+
 CMD python3 src/eval/tool_eval.py '/app'
