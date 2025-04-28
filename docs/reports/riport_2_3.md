@@ -19,3 +19,4 @@
   - type_infer használata, transform meghívása, és bleu score hozzárendelése
 - Kiértékelés kezdete
   - Eredmények mentése fájlokba
+  
