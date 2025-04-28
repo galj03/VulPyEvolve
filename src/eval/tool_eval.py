@@ -18,14 +18,17 @@ from sklearn.model_selection import train_test_split
 from src.utils import utils
 
 
-def main():
+def main(is_extract_from_db, is_transform_change_only, run_count=1):
     # 0. set config values
     root_dir = Path.cwd().parent.parent
     if len(sys.argv) > 1:
         root_dir = sys.argv[1]
     eval_root_dir = os.path.join(root_dir, "_infer_data", "eval")
     patterns_dir = os.path.join(eval_root_dir, "patterns")
-    temp_dir = os.path.join(eval_root_dir, "temp")
+    temp_str = "temp"
+    temp_dir = os.path.join(eval_root_dir, temp_str)
+    temp_method_str = "temp_method"
+    temp_method_dir = os.path.join(eval_root_dir, temp_method_str)
     compare_dir = os.path.join(eval_root_dir, "compare")
 
     cf.PROJECT_REPO = os.path.join(eval_root_dir, "project_repo")
@@ -35,70 +38,85 @@ def main():
     cf.FILES_PATH = os.path.join(eval_root_dir, "files.txt")
 
     create_directory_if_not_exists(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
-    create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))  # TODO: remove later?
+    create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
     create_directory_if_not_exists(patterns_dir)
     create_directory_if_not_exists(temp_dir)
+    create_directory_if_not_exists(temp_method_dir)
     create_directory_if_not_exists(compare_dir)
     create_directory_if_not_exists(cf.RULES_PATH)
 
+    # TODO: relabel these at the end
     # 1. collect all fixes from db to a temp dir
-    # extract_fixes()
+    # TODO: change
+    if is_extract_from_db:
+        extract_fixes()
+
+    # 2. type infer on all data, so it will only be required once
+    ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+    ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+    ti.TYPE_INFER_PROJECT_PATH = eval_root_dir
+    if is_transform_change_only:
+        ti.TYPE_INFER_PROJECT_NAME = temp_str
+    else:
+        ti.TYPE_INFER_PROJECT_NAME = temp_method_str
+    ti.main1()
 
     is_not_first_run = False
-    # while not is_not_first_run:
-    while True:
+
+    count = 0
+    while count < run_count:
         if is_not_first_run:
             cf.PATTERNS_PATH = temp_dir
 
             create_directory_if_not_exists(patterns_dir)
-            create_directory_if_not_exists(temp_dir)
             create_directory_if_not_exists(compare_dir)
             create_directory_if_not_exists(cf.RULES_PATH)
 
-        # 2. split the files (l and r sides should always stay connected!!!) 10-90 using scikit-learn
+        # 3. split the files (l and r sides should always stay connected!!!) 10-90 using scikit-learn
         files = get_files_from_dir(temp_dir)
         print(len(files))
         files_train, files_test = train_test_split(list(files), test_size=0.1)
 
-        # 3. copy the 10 part to a dummy project_repo
-        copy_l_files_to_dir(files_test, temp_dir, os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
-        copy_r_files_to_dir(files_test, temp_dir, compare_dir)
+        # 4. copy the 10 part to a dummy project_repo
+        if is_transform_change_only:
+            copy_l_files_to_dir(files_test, temp_dir, os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
+            copy_r_files_to_dir(files_test, temp_dir, compare_dir)
+        else:
+            copy_l_files_to_dir(files_test, temp_method_dir,
+                                os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
+            copy_r_files_to_dir(files_test, temp_method_dir, compare_dir)
+            pass
 
-        # 4. copy the 90 to patterns_path
+        # 5. copy the 90 to patterns_path
         copy_files_to_dir(files_train, temp_dir, patterns_dir)
 
-        # 5. infer the 90
+        # 6. infer the 90
         cf.PATTERNS_PATH = patterns_dir
         infer_cve(root_dir)
 
-        # 6. type_infer for project_repo
-        # TODO: uncomment
-        ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
-        ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
-        ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
-        ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
-        ti.main1()
-
-        # 7. collect files into files.txt
+        # 8. collect files into files.txt
         extension = utils.match_extension_to_language(cf.LANGUAGE)
         utils.collect_file_names_to_text_file(
             cf.PROJECT_REPO, cf.FILES_PATH, extension)
 
-        # 8. run pyevolve.transform
-        # TODO: run on the whole method instead of the change!!!
-        print("res: ", pyevolve_facade.run_pyevolve_transform(
-            root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
+        # 9. run pyevolve.transform
+        # print("res: ", pyevolve_facade.run_pyevolve_transform(
+        #     root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))
+        pyevolve_facade.run_pyevolve_transform(
+            root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH)
 
         # TODO: remove this
         # print_dir_files(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), extension)
         # print_dir_files(cf.RULES_PATH, extension)
 
-        # 8,5. filter out invalid files
+        # 10. filter out invalid files
         filtered_count, filtered = filter_files(
             os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
         print(f"{filtered_count} files were filtered out due to a tokenizing error.")
+        with open(f"{eval_root_dir}{os.path.sep}filtered_files_count.txt", "a") as f:
+            f.write(f"{filtered_count}\n")
 
-        # 9. evaluate results (bleu score)
+        # 11. evaluate results (bleu score)
         # transformed_files_tokens = collect_tokens_from_files_in_dir(
         #     os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), files_test, "l_")
         # original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, files_test, "r_")
@@ -106,27 +124,27 @@ def main():
             os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), filtered, "l_")
         original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, filtered, "r_")
 
-        print(original_files_tokens)
-        print(transformed_files_tokens)  # why are these empty???
+        # print(original_files_tokens)
+        # print(transformed_files_tokens)  # why are these empty???
         score = nltk.translate.bleu_score.corpus_bleu(original_files_tokens, transformed_files_tokens)
         print(f"Bleu: {score}")
 
-        # 10. save results into a file
+        # 12. save results into a file
         # with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
         with open(f"{eval_root_dir}{os.path.sep}docker_transform_scores.txt", "a") as f:
             f.write(f"{score}\n")
 
-        # 11. start over from step 2 (empty rules and patterns dirs)
+        # 13. start over from step 3 (empty rules and patterns dirs)
         shutil.rmtree(cf.RULES_PATH)
         shutil.rmtree(cf.PATTERNS_PATH)
         shutil.rmtree(compare_dir)
-        # shutil.rmtree(os.path.join(eval_root_dir, "pytype_files")) # TODO: uncomment after testing
         shutil.rmtree(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
         create_directory_if_not_exists(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
         shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
         create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
         is_not_first_run = True
+        count += 1
 
 
 def create_directory_if_not_exists(directory_path):
@@ -136,10 +154,8 @@ def create_directory_if_not_exists(directory_path):
 
 def print_dir_files(base_dir, extension):
     for path in glob(f'{base_dir}/**/*{extension}', recursive=True):
-        with open(path, 'rb') as f:
-            encoding_dict = chardet.detect(f.read())
-        with open(path, 'r', encoding=encoding_dict["encoding"]) as f:
-            print(f"{path}: ", f.read())
+        file_str = read_file(path)
+        print(f"{path}: ", file_str)
 
 
 def filter_files(directory, files, prefix):
@@ -150,10 +166,7 @@ def filter_files(directory, files, prefix):
         file_path = os.path.join(directory, r_file_name)
         file_str: str
         try:
-            with open(file_path, 'rb') as f:
-                encoding_dict = chardet.detect(f.read())
-            with open(file_path, 'r', encoding=encoding_dict["encoding"]) as f:
-                file_str = f.read()
+            file_str = read_file(file_path)
             tokens = tokenize.generate_tokens(io.StringIO(file_str).readline)
             _ = [token.string for token in tokens]
             new_files.append(file_name)
@@ -205,14 +218,20 @@ def copy_r_files_to_dir(files_test, source_dir, destination_dir):
         shutil.copy2(str(curr_file_path), str(dest_file_path))
 
 
+def read_file(file_path):
+    with open(file_path, 'rb') as f:
+        encoding_dict = chardet.detect(f.read())
+    with open(file_path, 'r', encoding=encoding_dict["encoding"]) as f:
+        file_str = f.read()
+    return file_str
+
+
 def collect_reference_tokens_from_files_in_dir(directory, files, prefix):
     token_list = list()
     for file_name in files:
         r_file_name = prefix + file_name
         file_path = os.path.join(directory, r_file_name)
-        file_str: str
-        with open(file_path, 'r') as f:
-            file_str = f.read()
+        file_str = read_file(file_path)
         tokens = tokenize.generate_tokens(io.StringIO(file_str).readline)
         token_list.append([[token.string for token in tokens]])
     return token_list
@@ -223,15 +242,12 @@ def collect_tokens_from_files_in_dir(directory, files, prefix):
     for file_name in files:
         r_file_name = prefix + file_name
         file_path = os.path.join(directory, r_file_name)
-        file_str: str
-        with open(file_path, 'rb') as f:
-            encoding_dict = chardet.detect(f.read())
-        with open(file_path, 'r', encoding=encoding_dict["encoding"]) as f:
-            file_str = f.read()
+        file_str = read_file(file_path)
         tokens = tokenize.generate_tokens(io.StringIO(file_str).readline)
         token_list.append([token.string for token in tokens])
     return token_list
 
 
 if __name__ == '__main__':
-    main()
+    # main(True, True) - this is the default
+    main(True, False)

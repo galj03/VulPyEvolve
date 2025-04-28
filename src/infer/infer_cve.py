@@ -30,4 +30,4 @@ def extract_fixes():
 def infer_cve(root_dir):
     # 3. run run_pyevolve_infer
     res = pyevolve_facade.run_pyevolve_infer(root_dir, cf.PATTERNS_PATH, cf.RULES_PATH)
-    print(res)
+    # print(res)
