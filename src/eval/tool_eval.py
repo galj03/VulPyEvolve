@@ -137,11 +137,12 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
         shutil.rmtree(compare_dir)
         shutil.rmtree(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
         create_directory_if_not_exists(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
-        shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
-        create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
         is_not_first_run = True
         count += 1
+
+    shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+    create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
 
 def create_directory_if_not_exists(directory_path):
