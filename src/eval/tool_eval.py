@@ -100,11 +100,21 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
             copy_r_files_to_dir(files_test, temp_method_dir, compare_dir)
 
         # 5. copy the 90 to patterns_path
-        copy_files_to_dir(files_train, temp_dir, patterns_dir)
+        # NOTE: in this version, all files are inferred
+        copy_files_to_dir(files, temp_dir, patterns_dir)
+        # copy_files_to_dir(files_train, temp_dir, patterns_dir)
 
         # 6. infer the 90
+        # CAUTION! Uncommenting this line will delete the temp folder
         cf.PATTERNS_PATH = patterns_dir
         infer_cve(root_dir)
+
+        # TODO: remove
+        # ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+        # ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+        # ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
+        # ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
+        # ti.main1()
 
         # 8. collect files into files.txt
         extension = utils.match_extension_to_language(cf.LANGUAGE)
@@ -260,7 +270,10 @@ def collect_tokens_from_files_in_dir(directory, files, prefix):
     return token_list
 
 
+# IMPORTANT: if is_transform_change_only changes, then:
+# 1. replace temp with correct folder
+# 2. replace type repo with correct folder
 if __name__ == '__main__':
     # main(True, True) - this is the default - executes 1 run
     # main(False, False, 200)
-    main(False, False, 200)
+    main(False, True, 1)
