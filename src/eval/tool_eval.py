@@ -31,8 +31,9 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
     temp_method_dir = os.path.join(eval_root_dir, temp_method_str)
     compare_dir = os.path.join(eval_root_dir, "compare")
 
-    cf.PROJECT_REPO = os.path.join(eval_root_dir, "project_repo")
-    cf.TYPE_REPO = os.path.join(eval_root_dir, "type_repo")
+    # maybe this fixes it?
+    cf.PROJECT_REPO = os.path.join(eval_root_dir, "project_repo") + os.path.sep  # "/"
+    cf.TYPE_REPO = os.path.join(eval_root_dir, "type_repo")  # + os.path.sep  # "/"
     cf.PATTERNS_PATH = temp_dir
     cf.RULES_PATH = os.path.join(eval_root_dir, "rules")
     cf.FILES_PATH = os.path.join(eval_root_dir, "files.txt")
@@ -54,14 +55,21 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
             extract_fixes(temp_method_dir)
 
     # 2. type infer on all data, so it will only be required once
-    ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
-    ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
-    ti.TYPE_INFER_PROJECT_PATH = eval_root_dir
-    if is_transform_change_only:
-        ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", temp_str) # temp_str
-    else:
-        ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", temp_method_str)
-    ti.main1()
+    # ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+    # ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+    # ti.TYPE_INFER_PROJECT_PATH = eval_root_dir
+    # if is_transform_change_only:
+    #     ti.TYPE_INFER_PROJECT_NAME = temp_str  # os.path.join("pythonInfer", temp_str) # temp_str
+    # else:
+    #     ti.TYPE_INFER_PROJECT_NAME = temp_method_str  # os.path.join("pythonInfer", temp_method_str)
+    #
+    # ti.main1()
+    # if is_transform_change_only:
+    #     shutil.copytree(os.path.join(cf.TYPE_REPO, temp_str),
+    #                     os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+    # else:
+    #     shutil.copytree(os.path.join(cf.TYPE_REPO, temp_method_str),
+    #                     os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
     is_not_first_run = False
 
