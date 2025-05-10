@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 from src.utils import utils
 
 
-def main(is_extract_from_db, is_transform_change_only, run_count=1):
+def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_on_self=False):
     # 0. set config values
     root_dir = Path.cwd().parent.parent
     if len(sys.argv) > 1:
@@ -101,8 +101,10 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1):
 
         # 5. copy the 90 to patterns_path
         # NOTE: in this version, all files are inferred
-        copy_files_to_dir(files, temp_dir, patterns_dir)
-        # copy_files_to_dir(files_train, temp_dir, patterns_dir)
+        if is_evaluate_on_self:
+            copy_files_to_dir(files, temp_dir, patterns_dir)
+        else:
+            copy_files_to_dir(files_train, temp_dir, patterns_dir)
 
         # 6. infer the 90
         # CAUTION! Uncommenting this line will delete the temp folder
