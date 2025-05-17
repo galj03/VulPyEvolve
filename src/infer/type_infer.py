@@ -71,7 +71,6 @@ def generate_pytype_folder(project_path, file_path, pytype_storage, type_repo):
     subprocess.run(['pytype', '--pythonpath=' + project_path, '--python-version=' + py_version_s, '--no-report-errors',
                     '--keep-going', '--protocols', '--output=' + pytype_storage, file_path], shell=False, env=env,
                    cwd=os.path.dirname(os.path.realpath(__file__)))
-    # TODO: test if cwd will be correct if not run as subprocess
 
 
 def _get_node_key(node):

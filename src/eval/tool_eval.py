@@ -18,7 +18,13 @@ from sklearn.model_selection import train_test_split
 from src.utils import utils
 
 
-def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_on_self=False):
+def main(
+        is_extract_from_db,
+        is_transform_change_only,
+        run_count=1,
+        is_evaluate_on_self=False,
+        is_run_type_infer_on_all=False,
+        is_keep_type_info=True):
     # 0. set config values
     root_dir = Path.cwd().parent.parent
     if len(sys.argv) > 1:
@@ -31,9 +37,8 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
     temp_method_dir = os.path.join(eval_root_dir, temp_method_str)
     compare_dir = os.path.join(eval_root_dir, "compare")
 
-    # maybe this fixes it?
-    cf.PROJECT_REPO = os.path.join(eval_root_dir, "project_repo") + os.path.sep  # "/"
-    cf.TYPE_REPO = os.path.join(eval_root_dir, "type_repo")  # + os.path.sep  # "/"
+    cf.PROJECT_REPO = os.path.join(eval_root_dir, "project_repo") + os.path.sep
+    cf.TYPE_REPO = os.path.join(eval_root_dir, "type_repo")
     cf.PATTERNS_PATH = temp_dir
     cf.RULES_PATH = os.path.join(eval_root_dir, "rules")
     cf.FILES_PATH = os.path.join(eval_root_dir, "files.txt")
@@ -55,21 +60,24 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
             extract_fixes(temp_method_dir)
 
     # 2. type infer on all data, so it will only be required once
-    # ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
-    # ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
-    # ti.TYPE_INFER_PROJECT_PATH = eval_root_dir
-    # if is_transform_change_only:
-    #     ti.TYPE_INFER_PROJECT_NAME = temp_str  # os.path.join("pythonInfer", temp_str) # temp_str
-    # else:
-    #     ti.TYPE_INFER_PROJECT_NAME = temp_method_str  # os.path.join("pythonInfer", temp_method_str)
-    #
-    # ti.main1()
-    # if is_transform_change_only:
-    #     shutil.copytree(os.path.join(cf.TYPE_REPO, temp_str),
-    #                     os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
-    # else:
-    #     shutil.copytree(os.path.join(cf.TYPE_REPO, temp_method_str),
-    #                     os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+    if is_run_type_infer_on_all:
+        ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+        ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+        ti.TYPE_INFER_PROJECT_PATH = eval_root_dir
+        if is_transform_change_only:
+            ti.TYPE_INFER_PROJECT_NAME = temp_str
+        else:
+            ti.TYPE_INFER_PROJECT_NAME = temp_method_str
+
+        ti.main1()
+
+        # make a backup, then copy to the actual folder
+        if is_transform_change_only:
+            shutil.copytree(os.path.join(cf.TYPE_REPO, temp_str),
+                            os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+        else:
+            shutil.copytree(os.path.join(cf.TYPE_REPO, temp_method_str),
+                            os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
     is_not_first_run = False
 
@@ -87,7 +95,7 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
         if not is_transform_change_only:
             files = files.intersection(get_files_from_dir(temp_method_dir))
 
-        # print(len(files))
+        print(f"Number of fixes retrieved: {len(files)}")
         files_train, files_test = train_test_split(list(files), test_size=0.1)
 
         # 4. copy the 10 part to a dummy project_repo
@@ -100,23 +108,23 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
             copy_r_files_to_dir(files_test, temp_method_dir, compare_dir)
 
         # 5. copy the 90 to patterns_path
-        # NOTE: in this version, all files are inferred
         if is_evaluate_on_self:
+            # NOTE: in this version, all files are inferred
             copy_files_to_dir(files, temp_dir, patterns_dir)
         else:
             copy_files_to_dir(files_train, temp_dir, patterns_dir)
 
         # 6. infer the 90
-        # CAUTION! Uncommenting this line will delete the temp folder
         cf.PATTERNS_PATH = patterns_dir
         infer_cve(root_dir)
 
-        # TODO: remove
-        # ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
-        # ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
-        # ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
-        # ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
-        # ti.main1()
+        # 7. type infer on current eval files
+        if not is_run_type_infer_on_all:
+            ti.TYPE_INFER_PYTYPE_FILES = os.path.join(eval_root_dir, "pytype_files")
+            ti.TYPE_INFER_PYTYPE_SAVE = cf.TYPE_REPO
+            ti.TYPE_INFER_PROJECT_PATH = cf.PROJECT_REPO
+            ti.TYPE_INFER_PROJECT_NAME = os.path.join("pythonInfer", "evaluation_set")
+            ti.main1()
 
         # 8. collect files into files.txt
         extension = utils.match_extension_to_language(cf.LANGUAGE)
@@ -126,11 +134,8 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
         # 9. run pyevolve.transform
         res = pyevolve_facade.run_pyevolve_transform(
             root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH)
-        # print("res: ", res)
-
-        # TODO: remove this
-        # print_dir_files(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), extension)
-        # print_dir_files(cf.RULES_PATH, extension)
+        print("res: ", res)
+        print("Return code: ", res.returncode)
 
         # 10. filter out invalid files
         filtered_count, filtered = filter_files(
@@ -144,13 +149,10 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
             os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"), filtered, "l_")
         original_files_tokens = collect_reference_tokens_from_files_in_dir(compare_dir, filtered, "r_")
 
-        # print(original_files_tokens)
-        # print(transformed_files_tokens)  # why are these empty???
         score = nltk.translate.bleu_score.corpus_bleu(original_files_tokens, transformed_files_tokens)
         print(f"Bleu: {score}")
 
         # 12. save results into a file
-        # with open(f"{eval_root_dir}{os.path.sep}docker_test_transform_scores.txt", "a") as f:
         with open(f"{eval_root_dir}{os.path.sep}pre_transform_method_scores.txt", "a") as f:
             f.write(f"{score}\n")
 
@@ -160,14 +162,16 @@ def main(is_extract_from_db, is_transform_change_only, run_count=1, is_evaluate_
         shutil.rmtree(compare_dir)
         shutil.rmtree(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
         create_directory_if_not_exists(os.path.join(cf.PROJECT_REPO, "pythonInfer", "evaluation_set"))
-        # IMPORTANT TODO: remove these lines after testing
-        # shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
-        # create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+
+        if not is_run_type_infer_on_all:
+            shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+            create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
         is_not_first_run = True
         count += 1
 
-    # shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
+    if not is_keep_type_info:
+        shutil.rmtree(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
     create_directory_if_not_exists(os.path.join(cf.TYPE_REPO, "pythonInfer", "evaluation_set"))
 
 
