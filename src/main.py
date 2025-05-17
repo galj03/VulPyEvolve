@@ -30,6 +30,5 @@ if __name__ == '__main__':
     ti.TYPE_INFER_PROJECT_NAME = cf.PROJECT_NAME
     ti.main1()
 
-    print("Db path: ", cf.DATABASE_PATH)
     print("res: ",
           pyevolve_facade.run_pyevolve_transform(root_dir, cf.PROJECT_REPO, cf.TYPE_REPO, cf.FILES_PATH, cf.RULES_PATH))

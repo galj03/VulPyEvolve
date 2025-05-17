@@ -116,8 +116,6 @@ def save_file_from_db_objects(patterns_path, methods_path, left, right, file_pat
         print("Error while parsing AST. File will not be saved.")
         return
 
-    # write_code_to_file(patterns_path, file_path, file_name, "old_l_", left.code)
-    # write_code_to_file(patterns_path, file_path, file_name, "old_r_", right.code)
     write_code_to_file(patterns_path, file_name, "l_", cve, diff_a)
     write_code_to_file(patterns_path, file_name, "r_", cve, diff_b)
     if methods_path is not None:

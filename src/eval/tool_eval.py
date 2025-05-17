@@ -51,7 +51,6 @@ def main(
     create_directory_if_not_exists(compare_dir)
     create_directory_if_not_exists(cf.RULES_PATH)
 
-    # TODO: relabel these at the end
     # 1. collect all fixes from db to a temp dir
     if is_extract_from_db:
         if is_transform_change_only:
