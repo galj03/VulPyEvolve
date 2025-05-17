@@ -3,8 +3,10 @@ import os
 import sqlite3
 from pathlib import Path
 
+from src.config import configuration as cf
 from src.data_source.queries import *
 from src.utils.code_parser import *
+from src.utils.utils import match_extension_to_language
 
 
 def is_database_available(database_path) -> bool:
@@ -125,9 +127,9 @@ def save_file_from_db_objects(patterns_path, methods_path, left, right, file_pat
 
 
 def write_code_to_file(patterns_path, file_name, file_name_prefix, cve, content):
-    # new_file_path = file_path.replace(file_name, file_name_prefix + file_name)
     new_file_path = file_name_prefix + file_name
-    new_file_path = new_file_path.replace(".py", f"-{cve}.py")  # TODO: technical debt: generalize extension
+    extension = match_extension_to_language(cf.LANGUAGE)
+    new_file_path = new_file_path.replace(extension, f"-{cve}{extension}")
     full_path = os.path.join(patterns_path, new_file_path)
     if not os.path.exists(full_path):
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
