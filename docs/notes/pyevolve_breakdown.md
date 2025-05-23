@@ -16,3 +16,39 @@
 ## How does it do it? - workflow breakdown
 
 - TODO
+
+## Running the app as a black box
+
+**CLI app**:
+
+### pycraft infer [PARAMS]
+
+*Infer transformation rules for a given set of patterns*
+
+**"-p", "--patterns"** => "Path for the pattern repository"
+
+**"-r", "--rules"** => "Output path for the transformation rule repository"
+
+Patterns: the CPATs (CVE fixes) collected into a specific file format.
+It makes rules out of them, and puts them into to rules directory.
+
+### pycraft transform [PARAMS]
+
+*Apply transformations defied in the rules to code bases*
+
+**"-r","--repositories"** => "Path for project repository"
+
+**"-t","--types"** => "Path for type repository"
+
+**"-f","--files"** => "The text file contains the file paths of Python files that need to be refactored."
+
+**"-p","patterns"** => "Path for code patterns"
+
+Project and type repos: first one is the project repo path that we want to transform.
+
+Types: some random stuff created by a Python file. I don't understand why is it relevant.
+
+Files: a txt which contains the names of all files
+which should be refactored. File collection could be automated.
+
+Patterns: patterns or rules??? - elvileg rules
